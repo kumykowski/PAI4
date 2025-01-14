@@ -1,9 +1,7 @@
-import './App.css'
+import { Router } from './components/Router';
 
 export const App = () => {
   return (
-    <>
-    <p>Hello world</p>
-    </>
+    <Router />
   )
 }
