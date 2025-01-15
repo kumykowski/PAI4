@@ -5,6 +5,8 @@ export default {
     extend: {
       colors: {
         baloonBlue: "#265BFF",
+        logoBlue: "#2DACE3",
+        logoYellow: "#FAC827",
       },
     },
   },

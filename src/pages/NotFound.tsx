@@ -6,7 +6,7 @@ export const NotFoundPage = () => {
     const navigate = useNavigate()
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-blue-100 text-blue-900">
+        <div className="flex flex-col items-center justify-center min-h-screen">
             <Player
                 autoplay
                 loop
