@@ -2,32 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer components {
-  .btn-green {
-    @apply relative overflow-hidden bg-transparent border-4 border-baloonBlue text-blue-900 font-bold py-2 px-8 rounded-full cursor-pointer transition-all duration-200 ease-in-out;
-  }
-  .btn-green:hover {
-    @apply text-black;
-  }
-}
-
-@layer base {
-  :root {
-    --blue: #0e0620;
-    --white: #fff;
-    --green: #2ccf6d;
-  }
-  body {
-    @apply h-full flex items-center justify-center font-sans text-base text-blue-900;
-  }
-  h2 {
-    @apply text-3xl font-bold mb-2 text-baloonBlue;
-  }
-  p {
-    @apply text-lg text-blue-900;
-  }
-}
-
 @media screen and (max-width: 768px) {
   @layer base {
     body {

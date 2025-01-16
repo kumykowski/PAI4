@@ -26,10 +26,10 @@ export const Header = () => {
       </ul>
       <div className="flex items-center space-x-4">
         <a
-          href="#"
+          href="/"
           className="hidden lg:block bg-white text-gray-900 px-4 py-2 rounded-full text-sm font-bold hover:bg-gray-200"
         >
-          Dummy
+          Home
         </a>
       </div>
     </header>
