@@ -9,14 +9,13 @@ import mockup from "../assets/mockup.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Zdefiniowanie typu dla danych formularza
 type FormValues = {
   city: string;
 };
 
 export const HomePage = () => {
   const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>(); // Użycie niestandardowego typu
+  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>();
   const heroRef = useRef<HTMLDivElement>(null);
   const phoneRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
