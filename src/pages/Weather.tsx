@@ -5,6 +5,24 @@ import { useForm } from "react-hook-form";
 import animationData from "../assets/loading.json";
 import { countries } from "../constants/countries";
 import { MdMyLocation } from 'react-icons/md';
+import { 
+  WiDaySunny, 
+  WiCloud, 
+  WiRain, 
+  WiSnow, 
+  WiThunderstorm, 
+  WiDust,
+  WiCloudy,
+  WiDayCloudyHigh,
+  WiFog,
+  WiNightClear,
+  WiNightAltCloudy,
+  WiNightAltRain,
+  WiNightAltSnow,
+  WiNightAltThunderstorm,
+  WiNightFog,
+  WiNightAltCloudyHigh
+} from 'react-icons/wi';
 
 type FormData = {
   city: string;
@@ -12,6 +30,60 @@ type FormData = {
   lat: string;
   lon: string;
   useCoordinates: boolean;
+};
+
+const isNightTime = (dt: number, sunrise: number, sunset: number) => {
+  return dt < sunrise || dt > sunset;
+};
+
+const getWeatherIcon = (weatherCode: string, dt?: number, sunrise?: number, sunset?: number) => {
+  const isNight = dt && sunrise && sunset ? isNightTime(dt, sunrise, sunset) : false;
+  
+  const icons: { [key: string]: { day: JSX.Element; night: JSX.Element } } = {
+    'clear sky': {
+      day: <WiDaySunny className="text-4xl text-yellow-400" />,
+      night: <WiNightClear className="text-4xl text-gray-200" />
+    },
+    'few clouds': {
+      day: <WiDayCloudyHigh className="text-4xl text-gray-300" />,
+      night: <WiNightAltCloudyHigh className="text-4xl text-gray-300" />
+    },
+    'scattered clouds': {
+      day: <WiCloud className="text-4xl text-gray-400" />,
+      night: <WiNightAltCloudy className="text-4xl text-gray-400" />
+    },
+    'broken clouds': {
+      day: <WiCloudy className="text-4xl text-gray-500" />,
+      night: <WiNightAltCloudy className="text-4xl text-gray-500" />
+    },
+    'shower rain': {
+      day: <WiRain className="text-4xl text-blue-400" />,
+      night: <WiNightAltRain className="text-4xl text-blue-400" />
+    },
+    'rain': {
+      day: <WiRain className="text-4xl text-blue-500" />,
+      night: <WiNightAltRain className="text-4xl text-blue-500" />
+    },
+    'thunderstorm': {
+      day: <WiThunderstorm className="text-4xl text-yellow-600" />,
+      night: <WiNightAltThunderstorm className="text-4xl text-yellow-600" />
+    },
+    'snow': {
+      day: <WiSnow className="text-4xl text-white" />,
+      night: <WiNightAltSnow className="text-4xl text-white" />
+    },
+    'mist': {
+      day: <WiFog className="text-4xl text-gray-400" />,
+      night: <WiNightFog className="text-4xl text-gray-400" />
+    },
+    'overcast clouds': {
+      day: <WiCloudy className="text-4xl text-gray-600" />,
+      night: <WiNightAltCloudy className="text-4xl text-gray-600" />
+    }
+  };
+  
+  const iconSet = icons[weatherCode.toLowerCase()] || icons['clear sky'];
+  return isNight ? iconSet.night : iconSet.day;
 };
 
 export const WeatherPage = () => {
@@ -222,22 +294,102 @@ export const WeatherPage = () => {
           <p className="mt-2 text-lg">Loading...</p>
         </div>
       ) : weatherData && weatherData.current ? (
-        <div className="p-4 bg-slate-700 rounded shadow-md">
-          <p className="text-2xl font-semibold mb-2">
-            City: {cityName} ({country})
-          </p>
-          <p className="text-2xl font-semibold mb-2">
-            Current Temperature: {Math.floor(weatherData.current.temp)}°C
-          </p>
-          <p className="text-lg mb-1">
-            Conditions: {weatherData.current.weather[0].description}
-          </p>
-          <p className="text-lg mb-1">
-            Humidity: {weatherData.current.humidity}%
-          </p>
-          <p className="text-lg">
-            Wind Speed: {weatherData.current.wind_speed} m/s
-          </p>
+        <div className="w-full max-w-4xl">
+          {/* Current Weather Section */}
+          <div className="p-4 bg-slate-700 rounded-lg shadow-md mb-6">
+            <p className="text-2xl font-semibold mb-2">
+              City: {cityName} ({country})
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-semibold">
+                    {Math.floor(weatherData.current.temp)}°C
+                  </p>
+                  {getWeatherIcon(
+                    weatherData.current.weather[0].description, 
+                    weatherData.current.dt,
+                    weatherData.current.sunrise,
+                    weatherData.current.sunset
+                  )}
+                </div>
+                <p className="text-lg">
+                  Feels like: {Math.floor(weatherData.current.feels_like)}°C
+                </p>
+                <p className="text-lg capitalize">
+                  {weatherData.current.weather[0].description}
+                </p>
+              </div>
+              <div>
+                <p className="text-lg">Humidity: {weatherData.current.humidity}%</p>
+                <p className="text-lg">Wind Speed: {weatherData.current.wind_speed} m/s</p>
+                <p className="text-lg">UV Index: {weatherData.current.uvi}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Hourly Forecast Section */}
+          <h2 className="text-2xl font-bold mb-4">24-Hour Forecast</h2>
+          <div className="overflow-x-auto mb-8">
+            <div className="flex gap-4 pb-4">
+              {weatherData.hourly.slice(0, 24).map((hour: any, index: number) => (
+                <div key={index} className="flex-shrink-0 w-32 p-4 bg-slate-700 rounded-lg shadow-md">
+                  <p className="font-semibold">
+                    {new Date(hour.dt * 1000).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false
+                    })}
+                  </p>
+                  <div className="flex items-center justify-between my-2">
+                    <p className="text-xl">{Math.floor(hour.temp)}°C</p>
+                    {getWeatherIcon(
+                      hour.weather[0].description,
+                      hour.dt,
+                      weatherData.current.sunrise,
+                      weatherData.current.sunset
+                    )}
+                  </div>
+                  <div className="mt-2 text-sm">
+                    <p>Humidity: {hour.humidity}%</p>
+                    <p>Wind: {hour.wind_speed} m/s</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        
+
+          {/* 7-Day Forecast Section */}
+          <h2 className="text-2xl font-bold mb-4">7-Day Forecast</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {weatherData.daily.slice(1, 8).map((day: any, index: number) => (
+              <div key={index} className="p-4 bg-slate-700 rounded-lg shadow-md">
+                <p className="font-semibold">
+                  {new Date(day.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' })}
+                </p>
+                <div className="flex items-center justify-between my-2">
+                  <p className="text-xl">
+                    {Math.floor(day.temp.max)}°C / {Math.floor(day.temp.min)}°C
+                  </p>
+                  {getWeatherIcon(
+                    day.weather[0].description,
+                    day.dt,
+                    day.sunrise,
+                    day.sunset
+                  )}
+                </div>
+                <p className="capitalize text-sm">
+                  {day.weather[0].description}
+                </p>
+                <div className="mt-2 text-sm">
+                  <p>Humidity: {day.humidity}%</p>
+                  <p>Wind: {day.wind_speed} m/s</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         error && <p className="text-lg text-red-500">{error}</p>
