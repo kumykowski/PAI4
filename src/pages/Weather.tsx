@@ -5,24 +5,7 @@ import { useForm } from "react-hook-form";
 import animationData from "../assets/loading.json";
 import { countries } from "../constants/countries";
 import { MdMyLocation } from 'react-icons/md';
-import { 
-  WiDaySunny, 
-  WiCloud, 
-  WiRain, 
-  WiSnow, 
-  WiThunderstorm, 
-  WiDust,
-  WiCloudy,
-  WiDayCloudyHigh,
-  WiFog,
-  WiNightClear,
-  WiNightAltCloudy,
-  WiNightAltRain,
-  WiNightAltSnow,
-  WiNightAltThunderstorm,
-  WiNightFog,
-  WiNightAltCloudyHigh
-} from 'react-icons/wi';
+import WeatherIcon from 'react-icons-weather';
 
 type FormData = {
   city: string;
@@ -32,60 +15,40 @@ type FormData = {
   useCoordinates: boolean;
 };
 
-const isNightTime = (dt: number, sunrise: number, sunset: number) => {
-  return dt < sunrise || dt > sunset;
+const getHourFromTimestamp = (timestamp: number): number => {
+  return new Date(timestamp * 1000).getHours();
 };
 
-const getWeatherIcon = (weatherCode: string, dt?: number, sunrise?: number, sunset?: number) => {
-  const isNight = dt && sunrise && sunset ? isNightTime(dt, sunrise, sunset) : false;
-  
-  const icons: { [key: string]: { day: JSX.Element; night: JSX.Element } } = {
-    'clear sky': {
-      day: <WiDaySunny className="text-4xl text-yellow-400" />,
-      night: <WiNightClear className="text-4xl text-gray-200" />
-    },
-    'few clouds': {
-      day: <WiDayCloudyHigh className="text-4xl text-gray-300" />,
-      night: <WiNightAltCloudyHigh className="text-4xl text-gray-300" />
-    },
-    'scattered clouds': {
-      day: <WiCloud className="text-4xl text-gray-400" />,
-      night: <WiNightAltCloudy className="text-4xl text-gray-400" />
-    },
-    'broken clouds': {
-      day: <WiCloudy className="text-4xl text-gray-500" />,
-      night: <WiNightAltCloudy className="text-4xl text-gray-500" />
-    },
-    'shower rain': {
-      day: <WiRain className="text-4xl text-blue-400" />,
-      night: <WiNightAltRain className="text-4xl text-blue-400" />
-    },
-    'rain': {
-      day: <WiRain className="text-4xl text-blue-500" />,
-      night: <WiNightAltRain className="text-4xl text-blue-500" />
-    },
-    'thunderstorm': {
-      day: <WiThunderstorm className="text-4xl text-yellow-600" />,
-      night: <WiNightAltThunderstorm className="text-4xl text-yellow-600" />
-    },
-    'snow': {
-      day: <WiSnow className="text-4xl text-white" />,
-      night: <WiNightAltSnow className="text-4xl text-white" />
-    },
-    'mist': {
-      day: <WiFog className="text-4xl text-gray-400" />,
-      night: <WiNightFog className="text-4xl text-gray-400" />
-    },
-    'overcast clouds': {
-      day: <WiCloudy className="text-4xl text-gray-600" />,
-      night: <WiNightAltCloudy className="text-4xl text-gray-600" />
-    }
-  };
-  
-  const iconSet = icons[weatherCode.toLowerCase()] || icons['clear sky'];
-  return isNight ? iconSet.night : iconSet.day;
-};
+export const getWeatherIcon = (description: string, currentTime: number, sunrise: number, sunset: number) => {
+  const hour = getHourFromTimestamp(currentTime);
+  console.log('DEBUG - Hour:', hour, 'IsNight:', hour >= 20 || hour < 6);
+  const isNight = hour >= 20 || hour < 6;
+  const desc = description.toLowerCase();
+  let iconId = 800;
 
+if (desc.includes('clear')) {
+    iconId = 800;
+  } else if (desc.includes('few clouds')) {
+    iconId = 801;
+  } else if (desc.includes('scattered clouds')) {
+    iconId = 802;
+  } else if (desc.includes('broken clouds') || desc.includes('overcast')) {
+    iconId = 803;
+  } else if (desc.includes('light rain') || desc.includes('drizzle')) {
+    iconId = 500;
+  } else if (desc.includes('rain')) {
+    iconId = 501;
+  } else if (desc.includes('thunderstorm')) {
+    iconId = 200;
+  } else if (desc.includes('snow')) {
+    iconId = 600;
+  } else if (desc.includes('mist') || desc.includes('fog')) {
+    iconId = 701;
+  }
+
+  const shouldShowNightIcon = hour >= 20 || hour < 6;
+  return <WeatherIcon name="owm" iconId={String(iconId)} flip={shouldShowNightIcon ? "horizontal" : null} size={24} />;
+};
 export const WeatherPage = () => {
   const { city } = useParams<{ city: string }>();
   const [cityName, setCityName] = useState<string>("Unknown");
@@ -295,7 +258,7 @@ export const WeatherPage = () => {
         </div>
       ) : weatherData && weatherData.current ? (
         <div className="w-full max-w-4xl">
-          {/* Current Weather Section */}
+          {/* mam teraz srake */}
           <div className="p-4 bg-slate-700 rounded-lg shadow-md mb-6">
             <p className="text-2xl font-semibold mb-2">
               City: {cityName} ({country})
@@ -328,7 +291,7 @@ export const WeatherPage = () => {
             </div>
           </div>
 
-          {/* Hourly Forecast Section */}
+          {/* Godzinowa sraka */}
           <h2 className="text-2xl font-bold mb-4">24-Hour Forecast</h2>
           <div className="overflow-x-auto mb-8">
             <div className="flex gap-4 pb-4">
@@ -359,9 +322,21 @@ export const WeatherPage = () => {
             </div>
           </div>
 
-        
+          <button
+  onClick={() => {
+    const stored = localStorage.getItem("favouriteLocations");
+    const favourites = stored ? JSON.parse(stored) : [];
+    if (!favourites.includes(cityName)) {
+      favourites.push(cityName);
+      localStorage.setItem("favouriteLocations", JSON.stringify(favourites));
+    }
+  }}
+  className="px-4 py-2 rounded bg-logoYellow text-black font-semibold"
+>
+  Dodaj do ulubionych
+</button>
 
-          {/* 7-Day Forecast Section */}
+          {/* 7 dni srania*/}
           <h2 className="text-2xl font-bold mb-4">7-Day Forecast</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {weatherData.daily.slice(1, 8).map((day: any, index: number) => (
